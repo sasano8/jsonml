@@ -26,11 +26,8 @@ jobs:
           # curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
-      - name: Add path for Poetry and config
-        run: |
-          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
+      - name: Add path for Poetry
+        run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
       - name: Load cached venv
         id: cache-venv
@@ -41,7 +38,10 @@ jobs:
 
       - name: Install Dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        run: poetry install
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+          poetry install
 
       - name: Check code style with Black
         run: poetry run black --check --diff .
