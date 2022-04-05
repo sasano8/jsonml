@@ -24,7 +24,7 @@ parser = Parser()
 
 obj = ["tag1", ["tag2", ["tag3", "1"]]]
 
-tree_1 = parser.parse_from_obj(obj)
+tree_1 = parser.parse(obj)
 xml_1 = parser.to_xml(tree_1)
 jsonml = parser.to_jsonml(tree_1)
 
