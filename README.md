@@ -4,7 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 -->
 
-This library is a python implementation of jsonml
+This library is a python implementation of jsonml.
+
+See below for jsonml specifications.
+
+- http://www.jsonml.org/
 
 # Requirement
 
