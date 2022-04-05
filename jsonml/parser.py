@@ -1,3 +1,6 @@
+import copy
+import inspect
+from typing import Callable, Type, Union
 from xml.etree import ElementTree
 from xml.etree.ElementTree import XMLParser as _XMLParser
 
@@ -9,17 +12,50 @@ class Undefined:
 Undefined = Undefined()  # type: ignore
 
 
+def build_selector(
+    mapping: dict = None,
+    default: Union[str, None, Type[ElementTree.Element]] = ElementTree.Element,
+) -> Callable[[str], Type[ElementTree.Element]]:
+
+    mapping: dict = mapping or {}
+
+    if not isinstance(mapping, dict):
+        raise TypeError()
+
+    if isinstance(default, str):
+        default = mapping[default]
+
+    if inspect.isclass(default) and issubclass(default, ElementTree.Element):
+
+        def selector(tag: str) -> Type[ElementTree.Element]:
+            try:
+                return mapping[tag.lower()]
+            except KeyError:
+                return default
+
+    elif default is None:
+
+        def selector(tag: str) -> Type[ElementTree.Element]:
+            return mapping[tag.lower()]
+
+    else:
+        raise TypeError()
+
+    return selector
+
+
 class JsonMLParser:
     def __init__(
-        self, mapping: dict = {"node": ElementTree.Element}, default_cls: str = "node"
+        self,
+        selector: Union[dict, Callable] = None,
     ):
-        default = mapping.get(default_cls)
+        if selector is None:
+            selector = build_selector()
 
-        def selector(tag: str):
-            return mapping.get(tag.lower(), default)
+        if isinstance(selector, dict):
+            selector = selector.__getitem__
 
-        self.mapping = mapping
-        self.selector = selector
+        self.selector: Callable[[str], Type[ElementTree.Element]] = selector
 
     def create_element(self, tag: str, attrs) -> ElementTree.Element:
         factory = self.selector(tag)
@@ -57,9 +93,11 @@ class JsonMLParser:
             parser=parser,
         )
 
-    def parse_from_obj(self, obj):
+    def parse(self, obj, deepcopy: bool = True):
         if not isinstance(obj, list):
             raise TypeError()
+
+        obj = copy.deepcopy(obj)
 
         it = iter(obj)
 
@@ -73,7 +111,7 @@ class JsonMLParser:
 
         for item in it:
             if isinstance(item, list):
-                children.append(self.parse_from_obj(item))
+                children.append(self.parse(item))
             elif isinstance(item, str):
                 texts.append(item)
             elif isinstance(item, dict):
