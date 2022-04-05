@@ -1,0 +1,39 @@
+{
+  // https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: debug server",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "sample:app",
+        "--reload",
+        "--port",
+        "8000"
+      ],
+      "justMyCode": false
+    },
+    {
+      "name": "Python: test",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "-vv",
+        "-s",
+        "--log-cli-level=DEBUG"
+      ],
+      "justMyCode": false
+    },
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}
