@@ -4,6 +4,8 @@ from typing import Callable, Type, Union
 from xml.etree import ElementTree
 from xml.etree.ElementTree import XMLParser as _XMLParser
 
+from .exporter import to_jsonml, to_xml
+
 
 class Undefined:
     ...
@@ -44,7 +46,7 @@ def build_selector(
     return selector
 
 
-class JsonMLParser:
+class BaseXMLParser:
     def __init__(
         self,
         selector: Union[dict, Callable] = None,
@@ -61,30 +63,6 @@ class JsonMLParser:
         factory = self.selector(tag)
         return factory(tag, attrs)
 
-    def to_xml(self, element: ElementTree.Element, as_byte: bool = False):
-        if as_byte:
-            return ElementTree.tostring(element)
-        else:
-            return ElementTree.tostring(element).decode("utf8")
-
-    def to_jsonml(self, element: ElementTree.Element):
-        tag = element.tag
-        attrib = element.attrib
-        text = element.text
-        children = [self.to_jsonml(x) for x in element]
-
-        result = [tag]
-        if len(attrib) != 0:
-            result.append(attrib)  # type: ignore
-
-        if text is not None:
-            result.append(text)
-
-        for child in children:
-            result.append(child)
-
-        return result
-
     def parse_from_xml_string(self, xml: str, encoding=None):
         tb = ElementTree.TreeBuilder(element_factory=self.create_element)
         parser = _XMLParser(target=tb, encoding=None)
@@ -93,7 +71,15 @@ class JsonMLParser:
             parser=parser,
         )
 
-    def parse(self, obj, deepcopy: bool = True):
+    def to_xml(self, element: ElementTree.Element, as_byte: bool = False):
+        return to_xml(element, as_byte)
+
+    def to_jsonml(self, element: ElementTree.Element):
+        return to_jsonml(element)
+
+
+class JsonMLParser(BaseXMLParser):
+    def parse(self, obj: list, deepcopy: bool = True):
         if not isinstance(obj, list):
             raise TypeError()
 
